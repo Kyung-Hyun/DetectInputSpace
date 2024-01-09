@@ -68,8 +68,23 @@ def get_average_brightness_of_region(image_path, left, top, right, bottom):
     return average_brightness
 
 
+def get_max_contour_area(cropped_image):
+    threshold = 225
+    _, img_binary = cv2.threshold(cropped_image, threshold, 255, cv2.THRESH_BINARY_INV)
 
-def find_check_box_for_input(input_image):
+    contour_areas = []
+
+    index = 0
+    # 이미지에서 컨투어(윤곽선) 찾기
+    contours, _ = cv2.findContours(img_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for contour in contours:
+        contour_areas.append(cv2.contourArea(contour))
+        index += 1
+
+    return max(contour_areas)
+
+
+def find_check_box_for_input(input_image, check_box_min_area=100):
     # 체크박스1 이미지 읽기
     pattern1 = cv2.imread(".//pattern//checkbox1.jpg", cv2.IMREAD_GRAYSCALE)
 
@@ -100,7 +115,11 @@ def find_check_box_for_input(input_image):
                 break
 
         if (already_detected == False):
-            check_boxes.append((pt[0], pt[1], pt[0] + pattern1.shape[1], pt[1] + pattern1.shape[0]))
+            # 매칭된 부분 이미지 내의 도형 윤곽선 검출을 이용해서 면적을 구해,
+            # 작은 도형(노이즈 또는 다른 글자)이면 제외한다.
+            cropped_image = img_gray[pt[1]:pt[1] + pattern1.shape[0], pt[0]:pt[0] + pattern1.shape[1]]
+            if (get_max_contour_area(cropped_image) > check_box_min_area):
+                check_boxes.append((pt[0], pt[1], pt[0] + pattern1.shape[1], pt[1] + pattern1.shape[0]))
 
     # 체크박스2 패턴 매칭 수행
     res = cv2.matchTemplate(img_gray, pattern2, cv2.TM_CCOEFF_NORMED)
@@ -119,7 +138,11 @@ def find_check_box_for_input(input_image):
                 break
 
         if (already_detected == False):
-            check_boxes.append((pt[0], pt[1], pt[0] + pattern2.shape[1], pt[1] + pattern2.shape[0]))
+            # 매칭된 부분 이미지 내의 도형 윤곽선 검출을 이용해서 면적을 구해,
+            # 작은 도형(노이즈 또는 다른 글자)이면 제외한다.
+            cropped_image = img_gray[pt[1]:pt[1] + pattern1.shape[0], pt[0]:pt[0] + pattern1.shape[1]]
+            if (get_max_contour_area(cropped_image) > check_box_min_area):
+                check_boxes.append((pt[0], pt[1], pt[0] + pattern2.shape[1], pt[1] + pattern2.shape[0]))
 
     return check_boxes
 
@@ -237,6 +260,9 @@ def find_white_space_for_input(input_image, brightness=225, max_area=3000, min_a
 
 def find_all_in_images(input_images, output_path):
 
+    # 체크 박스 최소 면적
+    check_box_min_area = 100
+
     # 입력 상자 영역의 평균 밝기 임계값(이것보다 밝은 입력 상자만 선택한다.) 
     brightness = 225
 
@@ -265,7 +291,7 @@ def find_all_in_images(input_images, output_path):
         print("# find check box for option check")
         print("##################################")
 
-        check_boxes = find_check_box_for_input(image)
+        check_boxes = find_check_box_for_input(image, check_box_min_area)
         if (len(check_boxes)):
             # 찾은 부분에 일련번호와 사각형 표시
             index = 0
@@ -336,8 +362,10 @@ def find_all_in_images(input_images, output_path):
 
 def find_check_box_in_images(input_images, output_path):
 
+    check_box_min_area = 100
+
     for image in input_images:
-        check_boxes = find_check_box_for_input(image)
+        check_boxes = find_check_box_for_input(image, check_box_min_area)
 
         # 이미지 불러오기
         img = cv2.imread(image)
@@ -444,4 +472,6 @@ if __name__ == "__main__":
 #    find_white_space_in_images(image_list, output_path)
 
     find_all_in_images(image_list, output_path)
+
+#    find_check_box_in_images([ ".//source_image//WJTH02_07_2.3_6.jpg"], output_path)
     print("\n********** finished **********")
