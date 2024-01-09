@@ -302,6 +302,7 @@ def find_all_in_images(input_images, output_path):
                 else:
                     cv2.putText(img, str(index), (x - 10, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 cv2.rectangle(img, (x, y), (x + width, y + height), (36, 255, 12), 2)
+
                 print("%d : (%d, %d), (%d, %d)" %(index, x, y, x + width, y + height))
                 index += 1
         else:
@@ -322,6 +323,19 @@ def find_all_in_images(input_images, output_path):
                 x, y, width, height = text_input
                 cv2.putText(img, str(index), (x, y + int(height / 2)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
                 cv2.rectangle(img, (x, y), (x + width, y + height), (36, 255, 12), 2)
+
+                # 텍스트 입력 칸 내부에 x축 방향으로 20 pixel 간격의 격자를 그린다.
+                i = 0
+                while (20 * i < width):
+                    cv2.line(img, (x + 20 * i, y), (x + 20 * i, y + height), (0, 255, 255), 1)
+                    i += 1
+
+                # 텍스트 입력 칸 내부에 y축 방향으로 20 pixel 간격의 격자를 그린다.
+                i = 0
+                while (20 * i < height):
+                    cv2.line(img, (x, y + 20 * i), (x + width, y + 20 * i), (0, 255, 255), 1)
+                    i += 1
+
                 print("%d : (%d, %d), (%d, %d)" %(index, x, y, x + width, y + height))
                 index += 1
         else:
@@ -345,6 +359,7 @@ def find_all_in_images(input_images, output_path):
                 else:
                     cv2.putText(img, str(index), (x - 10, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 cv2.rectangle(img, (x, y), (x + width, y + height), (36, 255, 12), 2)
+
                 print("%d : (%d, %d), (%d, %d)" %(index, x, y, x + width, y + height))
                 index += 1
         else:
